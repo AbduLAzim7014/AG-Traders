@@ -282,7 +282,7 @@ export default function Header() {
                       onClick={handleLogout}
                       className="block px-4 py-2 text-red-600"
                     >
-                      Logout
+                      Logout  
                     </button>
                   </>
                 )}
