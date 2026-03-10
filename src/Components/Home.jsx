@@ -1,539 +1,557 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RiArrowLeftLine } from "react-icons/ri";
-import { FaTruckMoving } from "react-icons/fa";
-import { LuBoxes } from "react-icons/lu";
-import { IoWalletOutline } from "react-icons/io5";
-import { GiWoodenCrate } from "react-icons/gi";
-import img1 from "../assets/Images/yellow.png";
 import { Link } from "react-router-dom";
-import yellowImg from "../assets/Images/yellow.png";
-import belanImg from "../assets/Images/belan.png";
-import boardImg from "../assets/Images/marbal.png";
+import {
+  FaChevronLeft,
+  FaChevronRight,
+  FaTruck,
+  FaLock,
+  FaHeadset,
+  FaStar,
+  FaCheckCircle,
+  FaArrowRight,
+  FaFire,
+  FaGift,
+  FaPhone,
+  FaEnvelope,
+} from "react-icons/fa";
+import { products, services } from "./BlogData/BlogData";
+import ProductCard from "../pages/ProductCard";
+import Testimonials from "./Testimonials";
+
+const img1 = "src/assets/Images/babol belan.png";
+const img2 = "src/assets/Images/neems.png";
+const img3 = "src/assets/Images/sarmikaa.png";
+
+import belan from "../../src/assets/Images/belan.png";
+import babolBelan from "../../src/assets/Images/babolgool.png";
+import neemBelan from "../assets/Images/babolgool.png";
+import marbleChakla from "../../src/assets/Images/sarmika.png";
+import { toast } from "react-toastify";
 
 export default function Home() {
   const [current, setCurrent] = useState(0);
+  const [email, setEmail] = useState("");
+  const [activeCategory, setActiveCategory] = useState("All");
+
+  const [text, setText] = useState("");
+  const [wordIndex, setWordIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      nextSlide();
-    }, 4000);
+    const typing = setTimeout(() => {
+      if (charIndex < words[wordIndex].length) {
+        setText((prev) => prev + words[wordIndex][charIndex]);
+        setCharIndex(charIndex + 1);
+      } else {
+        setTimeout(() => {
+          setText("");
+          setCharIndex(0);
+          setWordIndex((prev) => (prev + 1) % words.length);
+        }, 1500);
+      }
+    }, 100);
 
-    return () => clearInterval(interval);
-  }, [current]);
-
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [sortOption, setSortOption] = useState("default");
-
-  const nextSlide = () =>
-    setCurrent(current === slides.length - 1 ? 0 : current + 1);
-
-  const prevSlide = () =>
-    setCurrent(current === 0 ? slides.length - 1 : current - 1);
-
-  const categories = ["All", "Cakla", , "Sarmika"];
-
-  const products = [
-    {
-      id: 1,
-      name: "Yellow Wooden Chakla",
-      category: "Chakla",
-      price: 299,
-      img: yellowImg,
-    },
-    {
-      id: 2,
-      name: " Belan",
-      slug: "wooden-rolling-pin",
-      category: "Belan",
-      price: 199,
-      img: belanImg,
-    },
-    {
-      id: 3,
-      name: "Wooden Cutting Board",
-      slug: "wooden-cutting-board",
-      category: "Board",
-      price: 399,
-      img: boardImg,
-    },
+    return () => clearTimeout(typing);
+  }, [charIndex, wordIndex]);
+  const categories = [
+    { name: "All", icon: "🛍️" },
+    { name: "Wooden", icon: "🪵" },
+    { name: "Marble", icon: "💎" },
+    { name: "Kitchen", icon: "👨‍🍳" },
   ];
-
-  const filteredProducts = [...products]
-    .filter((item) =>
-      selectedCategory === "All" ? true : item.category === selectedCategory,
-    )
-    .sort((a, b) => {
-      if (sortOption === "low-high") return a.price - b.price;
-      if (sortOption === "high-low") return b.price - a.price;
-      if (sortOption === "a-z") return a.name.localeCompare(b.name);
-      return 0;
-    });
 
   const features = [
+    { icon: <FaTruck />, title: "Free Shipping", desc: "On orders above ₹500" },
     {
-      title: "Transport",
-      subtitle: "Export",
-      icon: <FaTruckMoving />,
+      icon: <FaCheckCircle />,
+      title: "100% Authentic",
+      desc: "Direct from manufacturer",
     },
     {
-      title: "Manufacturing",
-      subtitle: "Package",
-      icon: <LuBoxes />,
+      icon: <FaLock />,
+      title: "Secure Payment",
+      desc: "SSL encrypted checkout",
     },
     {
-      title: "Wooden Craft",
-      subtitle: "Export",
-      icon: <GiWoodenCrate />,
-    },
-    {
-      title: "Policy",
-      subtitle: "Terms",
-      icon: <IoWalletOutline />,
+      icon: <FaHeadset />,
+      title: "24/7 Support",
+      desc: "Dedicated customer care",
     },
   ];
 
-  const slides = [
+  const Submitevent = (e) => {
+    e.preventDefault();
+    if (email === "") {
+      toast.error("error fill email ");
+    } else {
+      toast.success("sucess submit ");
+    }
+  };
+
+  const nextSlide = () => {
+    setCurrent((prev) => (prev + 1) % length);
+  };
+
+  const prevSlide = () => {
+    setCurrent((prev) => (prev === 0 ? length - 1 : prev - 1));
+  };
+
+  useEffect(() => {
+    const timer = setInterval(nextSlide, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const featuredProducts = products.slice(0, 6);
+  const topServices = services.slice(0, 4);
+
+  const handleNewsletterSubmit = (e) => {
+    e.preventDefault();
+    setEmail("");
+  };
+
+  const specialOffers = [
     {
       id: 1,
-      image: "src/assets/Images/ChatGPT Image Feb 14, 2026, 03_13_45 AM.png",
+      name: "Wooden Belan",
+      price: 199,
+      img: belan,
     },
     {
       id: 2,
-      image: "src/assets/Images/belan.png",
+      name: "Babul Wooden Belan",
+      price: 249,
+      img: babolBelan,
     },
     {
       id: 3,
-      image: "src/assets/Images/spon.png",
+      name: "Neem Wooden Belan",
+      price: 299,
+      img: neemBelan,
     },
     {
       id: 4,
-      image: "src/assets/Images/marbal.png",
+      name: "Marble Chakla Belan",
+      price: 499,
+      img: marbleChakla,
     },
   ];
 
   return (
     <>
-      <div className="bg-gray-100">
-        {/* HERO SECTION */}
+      {/* ================= HERO CAROUSEL ================= */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-linear-to-br from-indigo-900 via-purple-900 to-black">
+        {/* Animated Gradient Blur Circles */}
+        <div className="absolute w-72 h-72 bg-yellow-400 rounded-full blur-3xl opacity-30 animate-pulse top-10 left-10"></div>
+        <div className="absolute w-96 h-96 bg-pink-500 rounded-full blur-3xl opacity-30 animate-pulse bottom-10 right-10"></div>
 
-        <div className="relative w-full h-[560px] overflow-hidden bg-gradient-to-r from-gray-100 to-gray-200">
-          {slides.map((slide, index) => (
-            <div
-              key={slide.id}
-              className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-                index === current ? "opacity-100 z-10" : "opacity-0 z-0"
-              }`}
-            >
-              <div className="max-w-7xl mx-auto h-full flex items-center px-6">
-                <div className="flex flex-col md:flex-row items-center justify-between w-full gap-8">
-                  {/* TEXT SIDE */}
-                  <div className="w-full md:w-1/2 text-center md:text-left">
-                    <img
-                      src="src/assets/Images/ChatGPT Image Feb 14, 2026, 03_21_52 AM.png"
-                      alt="A G Traders Logo"
-                      className="w-32 h-20 object-contain mb-4 mx-auto md:mx-0"
-                    />
+        <div className="container mx-auto px-6 grid md:grid-cols-2 items-center gap-10 relative z-10">
+          {/* LEFT CONTENT */}
+          <div className="text-white">
+            <span className="inline-block px-4 py-1 mb-4 text-sm bg-yellow-400 text-black rounded-full font-semibold shadow-lg">
+              🔥 Flat 50% Off
+            </span>
 
-                    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-6">
-                      Premium Wooden & Marble <br />
-                      <span className="text-green-700">Kitchen Essentials</span>
-                    </h1>
+            <h1 className="text-4xl md:text-6xl font-bold leading-tight">
+              Elevate Your Shopping <br />
+              With <span className="text-yellow-400">AG Traders</span>
+            </h1>
 
-                    <p className="text-gray-600 mb-6">
-                      Trusted since 1965. Export quality craftsmanship with fast
-                      delivery and secure payments.
-                    </p>
+            <p className="mt-6 text-gray-300 max-w-lg">
+              Premium quality products at unbeatable wholesale prices. Fast
+              delivery, secure payment & trusted service.
+            </p>
 
-                    <a
-                      href="/blog"
-                      className="inline-block px-8 py-3 bg-green-700 hover:bg-green-800 transition-all duration-300 rounded-lg text-white font-semibold shadow-lg hover:scale-105"
-                    >
-                      Shop Now
-                    </a>
-                  </div>
+            <div className="mt-8 flex flex-col sm:flex-row gap-4">
+              <button className="px-8 py-3 bg-yellow-400 text-black font-semibold rounded-xl shadow-xl hover:scale-105 transition duration-300">
+                Shop Collection
+              </button>
 
-                  {/* IMAGE SIDE */}
-                  <div className="w-full md:w-1/2 flex justify-center">
-                    <img
-                      src={slide.image}
-                      alt="Product"
-                      className="w-[80%] max-w-md object-contain drop-shadow-[0_30px_50px_rgba(0,0,0,0.25)]"
-                    />
-                  </div>
-                </div>
-              </div>
+              <button className="px-8 py-3 border border-white rounded-xl hover:bg-white hover:text-black transition duration-300">
+                Explore Deals
+              </button>
             </div>
-          ))}
-
-          {/* PREV BUTTON */}
-          <button
-            onClick={prevSlide}
-            className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur px-4 py-2 rounded-full shadow hover:bg-white transition"
-          >
-            ❮
-          </button>
-
-          {/* NEXT BUTTON */}
-          <button
-            onClick={nextSlide}
-            className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur px-4 py-2 rounded-full shadow hover:bg-white transition"
-          >
-            ❯
-          </button>
-
-          {/* DOTS */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3">
-            {slides.map((_, index) => (
-              <span
-                key={index}
-                onClick={() => setCurrent(index)}
-                className={`w-3 h-3 rounded-full cursor-pointer transition ${
-                  current === index ? "bg-green-700 scale-125" : "bg-gray-400"
-                }`}
-              ></span>
-            ))}
-          </div>
-        </div>
-
-        {/* CATEGORY SECTION */}
-        <section className="w-full mt-6 mb-4 ">
-          <div className="w-[90%] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {features.map((item, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-6 border rounded-xl 
-                       hover:shadow-lg hover:-translate-y-1 transition-all duration-300 
-                       bg-white"
-              >
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900 leading-tight">
-                    {item.title}
-                  </h2>
-                  <p className="text-gray-500">{item.subtitle}</p>
-                </div>
-
-                <div className="text-3xl text-gray-800">{item.icon}</div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* FEATURED PRODUCTS */}
-        <section className="py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-6">
-            <h2 className="text-3xl font-bold text-center mb-8">
-              Featured Products
-            </h2>
-
-            {/* FILTER + SORT */}
-            <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-10">
-              {/* Category Buttons */}
-              <div className="flex gap-3 flex-wrap">
-                {categories.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`px-5 py-2 rounded-full border transition ${
-                      selectedCategory === cat
-                        ? "bg-indigo-700 text-white"
-                        : "bg-white hover:bg-indigo-100"
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-
-              {/* Sort Dropdown */}
-              <select
-                onChange={(e) => setSortOption(e.target.value)}
-                className="px-4 py-2 border rounded-lg"
-              >
-                <option value="default">Sort By</option>
-                <option value="low-high">Price: Low → High</option>
-                <option value="high-low">Price: High → Low</option>
-                <option value="a-z">Name: A → Z</option>
-              </select>
-            </div>
-
-            {/* PRODUCTS GRID */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-              {filteredProducts.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-gray-50 rounded-xl shadow hover:shadow-2xl transition duration-300 overflow-hidden"
-                >
-                  <Link to={`/products/${item.slug}`} className="block">
-                    <img
-                      src={item.img}
-                      alt={item.name}
-                      className="h-48 
-                    w-full object-cover"
-                    />
-                  </Link>
-
-                  <div className="p-4">
-                    <h3 className="font-semibold text-lg">{item.name}</h3>
-                    <p className="text-indigo-700 font-bold mt-2">
-                      ₹{item.price}
-                    </p>
-
-                    <button className="mt-4 w-full bg-indigo-700 text-white py-2 rounded-lg hover:bg-indigo-800 transition">
-                      Add to Cart
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {filteredProducts.length === 0 && (
-              <p className="text-center text-gray-500 mt-10">
-                No products found
-              </p>
-            )}
-          </div>
-        </section>
-
-        {/* HERO SECTION */}
-
-        <div className="w-full py-16 px-6 md:px-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            {
-              title: "Wooden Crafts",
-              desc: "Handmade elegance for your home",
-              color: "bg-yellow-100",
-            },
-            {
-              title: "Kitchen Essentials",
-              desc: "Premium tools & accessories",
-              color: "bg-red-100",
-            },
-            {
-              title: "Decor & Lifestyle",
-              desc: "Beautify your space effortlessly",
-              color: "bg-blue-100",
-            },
-            {
-              title: "Gift Collections",
-              desc: "Perfect gifts for every occasion",
-              color: "bg-purple-100",
-            },
-          ].map((item, index) => (
-            <div
-              key={index}
-              className={`${item.color} p-6 rounded-xl shadow-lg hover:scale-105 transition-transform duration-300`}
-            >
-              <h3 className="text-2xl font-semibold mb-2">{item.title}</h3>
-              <p className="text-gray-700">{item.desc}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* OFFER SECTION */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-stone-50 to-white py-20 px-6 md:px-16 flex flex-col md:flex-row items-center gap-12 md:gap-20">
-          {/* Left: Text Content */}
-          <div className="md:w-1/2 z-10">
-            <h2 className="text-4xl md:text-5xl font-extrabold mb-8 text-gray-900 tracking-tight">
-              Elevate Your Kitchen <br />
-              <span className="text-amber-700">Experience.</span>
-            </h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {/* Benefit 1 */}
-              <div className="group p-4 rounded-2xl border border-stone-100 bg-white/50 hover:bg-white hover:shadow-xl hover:shadow-stone-200 transition-all duration-300">
-                <div className="w-10 h-10 mb-3 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 group-hover:scale-110 transition-transform">
-                  ✨
-                </div>
-                <h3 className="font-bold text-gray-900">Premium Wood</h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  Hand-selected, sustainable high-quality Wooden.
-                </p>
-              </div>
-
-              {/* Benefit 2 */}
-              <div className="group p-4 rounded-2xl border border-stone-100 bg-white/50 hover:bg-white hover:shadow-xl hover:shadow-stone-200 transition-all duration-300">
-                <div className="w-10 h-10 mb-3 rounded-full bg-green-100 flex items-center justify-center text-green-700 group-hover:scale-110 transition-transform">
-                  🚚
-                </div>
-                <h3 className="font-bold text-gray-900">Fast Delivery</h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  Carefully packaged and shipped to your door.
-                </p>
-              </div>
-
-              {/* Benefit 3 */}
-              <div className="group p-4 rounded-2xl border border-stone-100 bg-white/50 hover:bg-white hover:shadow-xl hover:shadow-stone-200 transition-all duration-300">
-                <div className="w-10 h-10 mb-3 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 group-hover:scale-110 transition-transform">
-                  🛡️
-                </div>
-                <h3 className="font-bold text-gray-900">Secure Payment</h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  100% encrypted and safe transactions.
-                </p>
-              </div>
-
-              {/* Benefit 4 */}
-              <div className="group p-4 rounded-2xl border border-stone-100 bg-white/50 hover:bg-white hover:shadow-xl hover:shadow-stone-200 transition-all duration-300">
-                <div className="w-10 h-10 mb-3 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 group-hover:scale-110 transition-transform">
-                  💬
-                </div>
-                <h3 className="font-bold text-gray-900">24/7 Support</h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  Our experts are always here to help you.
-                </p>
-              </div>
-            </div>
-
-            <button className="mt-10 px-8 py-4 bg-gray-900 text-white rounded-full font-semibold hover:bg-amber-800 transition-colors shadow-lg shadow-gray-200">
-              Explore Collection
-            </button>
           </div>
 
-          {/* Right: Floating Image Section */}
-          <div className="md:w-1/2 flex justify-center relative">
-            {/* Decorative background circle */}
-            <div className="absolute inset-0 bg-amber-100/50 rounded-full blur-3xl scale-75 animate-pulse"></div>
+          {/* RIGHT IMAGE SECTION */}
+          <div className="relative flex justify-center">
+            <div className="absolute w-80 h-80 bg-yellow-400 rounded-full blur-2xl opacity-30"></div>
 
             <img
-              src="src/assets/Images/nono-removebg-preview.png"
-              alt="Wooden Products"
-              className="relative z-10 w-full max-w-[450px] drop-shadow-[0_20px_50px_rgba(0,0,0,0.15)] animate-float"
+              src="src/assets/Images/belan.png"
+              alt="product"
+              className="relative w-72 md:w-96 drop-shadow-2xl animate-bounce "
             />
+
+            {/* Floating Card */}
+            <div className="absolute bottom-5 left-5 backdrop-blur-lg bg-white/10 border border-white/20 p-4 rounded-xl shadow-xl text-white">
+              <p className="text-sm">Starting From</p>
+              <h3 className="text-xl font-bold text-yellow-400">$99</h3>
+            </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Add this to your Global CSS for the floating effect */}
-        <style jsx global>{`
-          @keyframes float {
-            0% {
-              transform: translateY(0px);
-            }
-            50% {
-              transform: translateY(-30px);
-            }
-            100% {
-              transform: translateY(0px);
-            }
-          }
-          .animate-float {
-            animation: float 6s ease-in-out infinite;
-          }
-        `}</style>
+      {/* ================= TRUST FEATURES ================= */}
+      <section className="bg-white py-12 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {features.map((feature, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className="flex gap-4 items-center hover:bg-orange-50 p-4 rounded-lg transition"
+              >
+                <div className="text-4xl text-orange-600">{feature.icon}</div>
+                <div>
+                  <h4 className="font-bold text-gray-900">{feature.title}</h4>
+                  <p className="text-gray-600 text-sm">{feature.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ================= CATEGORY SHOWCASE ================= */}
+      <section className="py-16 bg-linear-to-b from-gray-50 to-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12">
+            Shop by Category
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {categories.map((cat, idx) => (
+              <motion.button
+                key={idx}
+                onClick={() => setActiveCategory(cat.name)}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className={`p-6 rounded-xl text-center transition-all transform hover:scale-105 ${
+                  activeCategory === cat.name
+                    ? "bg-orange-500 text-white shadow-lg"
+                    : "bg-white text-gray-900 shadow hover:shadow-lg"
+                }`}
+              >
+                <div className="text-4xl mb-3">{cat.icon}</div>
+                <h3 className="font-bold text-lg">{cat.name}</h3>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ================= FEATURED PRODUCTS ================= */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl font-bold mb-4">Featured Products</h2>
+            <p className="text-gray-600 text-lg">
+              Explore our most loved products
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <AnimatePresence>
+              {featuredProducts.map((product, idx) => (
+                <motion.div
+                  key={product.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <ProductCard product={product} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-center mt-12"
+          >
+            <Link
+              to="/product"
+              className="bg-orange-500 text-white px-8 py-3 rounded-lg font-bold hover:bg-orange-600 transition flex items-center gap-2"
+            >
+              View All Products <FaArrowRight />
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {specialOffers.map((product, idx) => (
+          <motion.div
+            key={product.id}
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: idx * 0.1 }}
+            className="bg-white rounded-lg p-4 text-gray-900"
+          >
+            <img
+              src={product.img}
+              alt={product.name}
+              className="w-full h-40 object-cover rounded mb-3"
+            />
+
+            <h3 className="font-bold text-lg mb-2">{product.name}</h3>
+
+            <div className="flex justify-between items-center">
+              <span className="text-2xl font-bold text-orange-600">
+                ₹{product.price}
+              </span>
+
+              <span className="bg-red-500 text-white px-3 py-1 rounded text-sm font-bold">
+                -30%
+              </span>
+            </div>
+
+            <button className="w-full mt-3 bg-orange-500 text-white py-2 rounded font-bold hover:bg-orange-600 transition">
+              Buy Now
+            </button>
+          </motion.div>
+        ))}
       </div>
-
-      <section className="bg-green-600 py-16 px-6 text-center text-white">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4">
-          Join Thousands of Happy Customers!
-        </h2>
-        <p className="mb-6">
-          Subscribe now and get exclusive offers straight to your inbox.
-        </p>
-        <input
-          type="email"
-          placeholder="Enter your email"
-          className="p-3 rounded-l-lg text-gray-800 w-1/3 max-w-md"
-        />
-        <button className="bg-white text-green-600 px-6 py-3 rounded-r-lg font-semibold hover:bg-gray-200 transition">
-          Subscribe
-        </button>
-      </section>
-
-      <section className="py-16 px-6 md:px-16">
-        <h2 className="text-3xl font-bold text-center mb-8">
-          What Our Customers Say
-        </h2>
-        <div className="max-w-4xl mx-auto grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {[
-            {
-              name: "Ravi Kumar",
-              feedback:
-                "The quality of the wooden products is outstanding! Fast delivery and excellent customer service.",
-            },
-            {
-              name: "Rahul Sharma",
-              feedback:
-                "I love the craftsmanship of the chakla and belan. They add a rustic charm to my kitchen!",
-            },
-            {
-              name: "Suresh Patel",
-              feedback:
-                "Highly recommend AG Traders for anyone looking for premium kitchen essentials. Great value for money!",
-            },
-          ].map((testimonial, index) => (
-            <div
-              key={index}
-              className="bg-gray-50 p-6 rounded-xl shadow hover:shadow-lg transition duration-300"
-            >
-              <p className="text-gray-700 mb-4">"{testimonial.feedback}"</p>
-              <h4 className="font-bold text-gray-900">{testimonial.name}</h4>
-            </div>
-          ))}
+      {/* ================= WHY CHOOSE US ================= */}
+      <section className="py-16 bg-linear-to-b from-gray-50 to-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12">
+            Why Choose AG Traders?
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {[
+              {
+                title: "Premium Quality",
+                desc: "All products are handcrafted with the finest materials",
+              },
+              {
+                title: "Affordable Prices",
+                desc: "Best prices without compromising on quality",
+              },
+              {
+                title: "Fast Delivery",
+                desc: "Quick and reliable shipping across India",
+              },
+              {
+                title: "Customer Support",
+                desc: "Dedicated team ready to help 24/7",
+              },
+            ].map((item, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, x: idx % 2 === 0 ? -20 : 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="text-3xl">✨</div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-2">{item.title}</h3>
+                    <p className="text-gray-600">{item.desc}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="bg-gray-100 py-16 px-6 md:px-16">
-        <h2 className="text-3xl font-bold text-center mb-8">
-          Explore Our Blog
-        </h2>
-        <div className="max-w-4xl mx-auto grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {[
-            {
-              title: "5 Benefits of Using Wooden Kitchen Tools",
-              excerpt:
-                "Discover why wooden kitchen tools are a must-have for every home chef. From durability to aesthetics, learn the top benefits of choosing wood.",
-            },
-            {
-              title: "How to Care for Your Wooden Products",
-              excerpt:
-                "Keep your wooden kitchen essentials looking new with our expert care tips. Learn how to clean, oil, and maintain your wooden items for long-lasting beauty.",
-            },
-            {
-              title: "Top 10 Wooden Products for Your Kitchen",
-              excerpt:
-                "Upgrade your kitchen with our top 10 must-have wooden products. From classic chakla to stylish cutting boards, find the perfect pieces to enhance your cooking experience.",
-            },
-          ].map((post, index) => (
-            <div
-              key={index}
-              className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition duration-300"
-            >
-              <h3 className="font-bold text-lg mb-2">{post.title}</h3>
-              <p className="text-gray-600">{post.excerpt}</p>
-            </div>
-          ))}
+      {/* ================= SERVICES ================= */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12">Our Services</h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {topServices.map((service, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className="bg-linear-to-br from-orange-50 to-orange-100 rounded-xl shadow-lg p-6 text-center hover:shadow-2xl transition"
+              >
+                <div className="text-5xl mb-4">{service.icon}</div>
+                <h3 className="text-xl font-bold mb-2 text-gray-900">
+                  {service.title}
+                </h3>
+                <p className="text-gray-700">{service.description}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="bg-green-700 py-16 px-6 text-center text-white">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4">
-          Ready to Elevate Your Kitchen?
-        </h2>
-        <p className="mb-6">
-          Explore our premium collection of wooden and marble kitchen essentials
-          and experience the difference today!
-        </p>
-        <a
-          href="/blog"
-          className="inline-block px-8 py-3 bg-white text-green-700 rounded-lg font-semibold hover:bg-gray-200 transition"
+      {/* ================= TESTIMONIALS ================= */}
+      <Testimonials />
+
+      {/* ================= NEWSLETTER ================= */}
+      <section className="py-16 bg-linear-to-r from-orange-500 to-orange-600 text-white">
+        <div className="max-w-2xl mx-auto px-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-3xl font-bold mb-4">Stay Updated</h2>
+            <p className="mb-8 text-orange-100">
+              Get exclusive offers and new product updates directly to your
+              inbox
+            </p>
+
+            <form onSubmit={handleNewsletterSubmit} className="flex gap-2 mb-4">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="flex-1 px-4 py-3 rounded-lg text-gray-900 focus:outline-none"
+                required
+              />
+              <button
+                onClick={Submitevent}
+                type="submit"
+                className="bg-white text-orange-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition"
+              >
+                Subscribe
+              </button>
+            </form>
+
+            <p className="text-orange-100 text-sm">
+              We respect your privacy. Unsubscribe anytime.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ================= ABOUT US ================= */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="space-y-6"
+            >
+              <h2 className="text-3xl font-bold text-gray-900">
+                About AG Traders
+              </h2>
+              <p className="text-gray-700 leading-relaxed">
+                Since 2000, AG Traders has been committed to delivering premium
+                quality wooden and marble kitchen products.
+              </p>
+              <div className="space-y-3">
+                {[
+                  "Handcrafted with precision",
+                  "100% Eco-friendly materials",
+                  "Traditional techniques",
+                  "Lifetime quality guarantee",
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-3">
+                    <FaCheckCircle className="text-orange-600" />
+                    <span className="text-gray-700">{item}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="grid grid-cols-2 gap-4"
+            >
+              {[
+                { number: "40+", label: "Years Experience" },
+                { number: "5000+", label: "Happy Customers" },
+                { number: "50+", label: "Products" },
+                { number: "4.9★", label: "Rating" },
+              ].map((stat, idx) => (
+                <div
+                  key={idx}
+                  className="bg-linear-to-br from-orange-50 to-orange-100 rounded-xl p-6 text-center"
+                >
+                  <h3 className="text-3xl font-bold text-orange-600 mb-2">
+                    {stat.number}
+                  </h3>
+                  <p className="text-gray-700 font-medium">{stat.label}</p>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= CTA SECTION ================= */}
+      <section className="py-16 bg-linear-to-b from-gray-900 to-black text-white text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
         >
-          Shop Now
-        </a>
+          <h2 className="text-4xl font-bold mb-4">
+            Ready to Transform Your Kitchen?
+          </h2>
+          <p className="text-gray-300 mb-8 text-lg">
+            Explore our premium collection of wooden and marble kitchen
+            essentials
+          </p>
+
+          <div className="flex flex-col md:flex-row gap-4 justify-center">
+            <Link
+              to="/product"
+              className="bg-orange-500 text-white px-8 py-3 rounded-lg font-bold hover:bg-orange-600 transition flex items-center justify-center gap-2"
+            >
+              Shop Now <FaArrowRight />
+            </Link>
+            <button className="border-2 border-orange-500 text-orange-500 px-8 py-3 rounded-lg font-bold hover:bg-orange-500 hover:text-white transition flex items-center justify-center gap-2">
+              <FaPhone /> Call Us
+            </button>
+          </div>
+        </motion.div>
       </section>
 
-      <section className="py-16 px-6 md:px-16">
-        <h2 className="text-3xl font-bold text-center mb-8">Our Story</h2>
-        <div className="max-w-4xl mx-auto text-center text-gray-700">
-          <p className="mb-4">
-            Founded in 1965, AG Traders has been a family-owned business
-            dedicated to providing premium wooden and marble kitchen essentials.
-            With over 50 years of experience, we pride ourselves on our
-            craftsmanship, quality, and customer satisfaction. Our products are
-            carefully crafted using sustainable materials and traditional
-            techniques, ensuring that each piece is not only beautiful but also
-            durable and functional. We are committed to delivering exceptional
-            products and service to our customers worldwide.
-          </p>
+      {/* ================= FOOTER CTA ================= */}
+      <section className="bg-orange-600 text-white py-8">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-around items-center gap-6">
+          <div className="flex items-center gap-3">
+            <FaPhone className="text-2xl" />
+            <div>
+              <p className="text-sm text-orange-100">Call us</p>
+              <p className="font-bold">+91 9462568415</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <FaEnvelope className="text-2xl" />
+            <div>
+              <p className="text-sm text-orange-100">Email us</p>
+              <p className="font-bold">abdulkhalik4548@gmail.com</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <FaGift className="text-2xl" />
+            <div>
+              <p className="text-sm text-orange-100">Special Offers</p>
+              <p className="font-bold">No hidden charges</p>
+            </div>
+          </div>
         </div>
       </section>
     </>

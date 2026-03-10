@@ -11,6 +11,7 @@ export default function RootLayout() {
       <Navigation />
       <Header />
       <Outlet />
+
       <Faq />
       <Footer />
     </>

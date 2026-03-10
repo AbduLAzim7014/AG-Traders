@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -39,14 +40,16 @@ export default function Contact() {
       setSubmitted(true);
       setFormData({ name: "", email: "", phone: "", message: "" });
       setErrors({});
+      toast.success("✔️ sucessfull send email  ");
     } else {
+      toast.error(" ❌ invalid form ");
       setErrors(validationErrors);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-gray-100 to-gray-200 py-16 px-6">
-      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10">
+    <div className="min-h-screen bg-linear-to-r from-gray-100 to-gray-200 py-16 px-6">
+      <div className="max-w-[1100px] mx-auto grid md:grid-cols-2 gap-10">
         {/* Left Side - Info */}
         <motion.div
           initial={{ x: -50, opacity: 0 }}
@@ -63,31 +66,29 @@ export default function Contact() {
             here to help you!
           </p>
 
-          <div className="space-y-5 text-gray-700">
-            <div className="flex items-center gap-4">
-              <FaPhoneAlt className="text-[#3E2723]" />
-              <span>+91 9462568415 </span>
-              <span>+91 9462568415 </span>
-              <span>+91 9462568415 </span>
+          <div className="space-y-5 text-gray-700 text-sm sm:text-base">
+            {/* Phone */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+              <FaPhoneAlt className="text-[#3E2723] text-lg" />
+              <div className="flex flex-col sm:flex-row gap-1 sm:gap-4">
+                <span>+91 9462568415</span>
+                <span>+91 7728011202</span>
+                <span>+91 8619024303</span>
+              </div>
             </div>
-            <div className="flex items-center gap-4">
-              <FaEnvelope className="text-[#3E2723]" />
-              <span>Agtraders4585@gmail.com</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <FaMapMarkerAlt className="text-[#3E2723]" />
-              <span>Rajisthan, Jodhpur India</span>
-            </div>
-          </div>
 
-          {/* Google Map */}
-          <div className="mt-6 rounded-xl overflow-hidden">
-            <iframe
-              title="AG Traders Location"
-              src="https://www.google.com/maps/embed?pb=!1m18..."
-              className="w-full h-60"
-              loading="lazy"
-            ></iframe>
+            {/* Email - Completed the truncated part */}
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+              <FaEnvelope className="text-[#3E2723] text-lg" />
+              <span>AGtraders4548@gmail.com</span>
+            </div>
+
+            {/* Address */}
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+              <FaMapMarkerAlt className="text-[#3E2723] text-lg" />
+              <span>India</span>
+              <span>Jodhpur , Rajsithan</span>
+            </div>
           </div>
         </motion.div>
 
@@ -95,18 +96,18 @@ export default function Contact() {
         <motion.div
           initial={{ x: 50, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
           className="bg-white p-8 rounded-2xl shadow-xl"
         >
-          <h2 className="text-3xl font-bold mb-6 text-[#3E2723]">
-            Send Us a Message
-          </h2>
-
+          <button className="text-3xl font-bold mb-6 text-[#3E2723]">
+            Send a Message
+          </button>
+          {/* 
           {submitted && (
             <div className="bg-green-100 text-green-700 p-3 rounded mb-4">
               ✅ Message sent successfully!
             </div>
-          )}
+          )} */}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>

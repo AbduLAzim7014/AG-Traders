@@ -1,23 +1,16 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { auth } from "../firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 
-import { auth, provider } from "../firebase";
-import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
-
-export default function Login() {
+export default function Register() {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const login = async () => {
-    await signInWithEmailAndPassword(auth, email, password);
-
-    navigate("/");
-  };
-
-  const googleLogin = async () => {
-    await signInWithPopup(auth, provider);
+  const register = async () => {
+    await createUserWithEmailAndPassword(auth, email, password);
 
     navigate("/");
   };
@@ -25,7 +18,7 @@ export default function Login() {
   return (
     <div className="flex justify-center items-center h-screen">
       <div className="shadow-lg p-8 w-96">
-        <h2 className="text-2xl font-bold mb-5">Login</h2>
+        <h2 className="text-2xl font-bold mb-5">Register</h2>
 
         <input
           type="email"
@@ -42,23 +35,16 @@ export default function Login() {
         />
 
         <button
-          onClick={login}
-          className="bg-blue-500 text-white w-full p-2 mb-3"
+          onClick={register}
+          className="bg-green-500 text-white w-full p-2 mb-3"
         >
-          Login
-        </button>
-
-        <button
-          onClick={googleLogin}
-          className="bg-red-500 text-white w-full p-2 mb-3"
-        >
-          Login with Google
+          Register
         </button>
 
         <p>
-          Don't have account ?
-          <Link to="/register" className="text-blue-500 ml-2">
-            Register
+          Already have account ?
+          <Link to="/login" className="text-blue-500 ml-2">
+            Login
           </Link>
         </p>
       </div>
