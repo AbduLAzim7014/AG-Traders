@@ -4,83 +4,118 @@ import { useNavigate } from "react-router-dom";
 
 export default function CartPage() {
   const { cart, updateQty, removeFromCart, totalPrice } = useCart();
-
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gray-100 py-10 px-4">
-      <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-xl p-6">
-        <h2 className="text-2xl font-bold mb-6 border-b pb-4">
-          🛒 Shopping Cart
-        </h2>
+    <div className="min-h-screen bg-gray-100 py-8 px-4">
+      <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-6">
+        {/* LEFT SIDE - CART ITEMS */}
+        <div className="md:col-span-2 bg-white p-6 rounded-lg shadow">
+          <h2 className="text-xl font-semibold border-b pb-4 mb-4">
+            My Cart ({cart.length})
+          </h2>
 
-        {cart.length === 0 ? (  
-          <p className="text-gray-500 text-center py-10">Your cart is empty</p>
-        ) : (
-          <div className="space-y-6">
-            {cart.map((item) => (
+          {cart.length === 0 ? (
+            <div className="text-center py-20">
+              <h3 className="text-xl font-semibold">Your cart is empty</h3>
+              <p className="text-gray-500 mt-2">Add items to it now</p>
+
+              <button
+                onClick={() => navigate("/products")}
+                className="mt-5 px-6 py-3 bg-blue-600 text-white rounded"
+              >
+                Shop Now
+              </button>
+            </div>
+          ) : (
+            cart.map((item) => (
               <div
                 key={item._id}
-                className="flex flex-col md:flex-row items-center justify-between border-b pb-6"
+                className="flex flex-col md:flex-row items-center border-b py-6"
               >
-                {/* Product Image */}
-                <div className="w-32 h-32">
+                {/* IMAGE */}
+                <div className="w-28 h-28">
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="w-full h-full object-cover rounded-lg"
+                    className="w-full h-full object-contain"
                   />
                 </div>
 
-                {/* Product Details */}
+                {/* DETAILS */}
                 <div className="flex-1 md:ml-6 text-center md:text-left">
-                  <h4 className="text-lg font-semibold">{item.name}</h4>
-                  <p className="text-gray-600">₹{item.price}</p>
+                  <h4 className="font-semibold text-lg">{item.name}</h4>
+
+                  <p className="text-gray-600 mt-1">₹{item.price}</p>
+
                   <p className="text-sm text-gray-500">
-                    Subtotal: ₹{item.price * item.qty}
+                    Subtotal ₹{item.price * item.qty}
                   </p>
+
+                  {/* REMOVE */}
+                  <button
+                    onClick={() => removeFromCart(item._id)}
+                    className="text-red-500 text-sm mt-2 hover:underline"
+                  >
+                    Remove
+                  </button>
                 </div>
 
-                {/* Quantity Buttons */}
-                <div className="flex items-center space-x-3 mt-4 md:mt-0">
+                {/* QUANTITY */}
+                <div className="flex items-center border rounded mt-4 md:mt-0">
                   <button
                     onClick={() => updateQty(item._id, "dec")}
-                    className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                    className="px-3 py-1 text-lg"
                   >
                     -
                   </button>
 
-                  <span className="font-semibold">{item.qty}</span>
+                  <span className="px-4">{item.qty}</span>
 
                   <button
                     onClick={() => updateQty(item._id, "inc")}
-                    className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                    className="px-3 py-1 text-lg"
                   >
                     +
                   </button>
                 </div>
-
-                {/* Remove Button */}
-                <button
-                  onClick={() => removeFromCart(item._id)}
-                  className="mt-4 md:mt-0 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-                >
-                  Remove
-                </button>
               </div>
-            ))}
+            ))
+          )}
+        </div>
 
-            {/* Total Section */}
-            <div className="flex justify-between items-center pt-6">
-              <h3 className="text-xl font-bold">Total: ₹{totalPrice}</h3>
+        {/* RIGHT SIDE - PRICE DETAILS */}
+        {cart.length > 0 && (
+          <div className="bg-white p-6 rounded-lg shadow h-fit sticky top-20">
+            <h3 className="font-semibold text-lg border-b pb-3 mb-4">
+              PRICE DETAILS
+            </h3>
 
-              <button
-                onClick={() => navigate("/checkout")}
-                className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
-              >
-                Proceed to Checkout
-              </button>
+            <div className="space-y-3 text-gray-700">
+              <div className="flex justify-between">
+                <span>Price ({cart.length} items)</span>
+                <span>₹{totalPrice}</span>
+              </div>
+
+              <div className="flex justify-between">
+                <span>Delivery Charges</span>
+                <span className="text-green-600">FREE</span>
+              </div>
+
+              <hr />
+
+              <div className="flex justify-between font-semibold text-lg">
+                <span>Total Amount</span>
+                <span>₹{totalPrice}</span>
+              </div>
             </div>
+
+            <button
+              onClick={() => navigate("/checkout")}
+              className="w-full mt-6 bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-semibold"
+            >
+              PLACE ORDER
+            </button>
           </div>
         )}
       </div>

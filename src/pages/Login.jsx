@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-
 import { auth, provider } from "../firebase";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+
+import { useNavigate, Link } from "react-router-dom";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -10,58 +10,53 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const login = async () => {
-    await signInWithEmailAndPassword(auth, email, password);
+  const loginUser = async (e) => {
+    e.preventDefault();
 
-    navigate("/");
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+
+      navigate("/");
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   const googleLogin = async () => {
-    await signInWithPopup(auth, provider);
+    try {
+      await signInWithPopup(auth, provider);
 
-    navigate("/");
+      navigate("/");
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="shadow-lg p-8 w-96">
-        <h2 className="text-2xl font-bold mb-5">Login</h2>
+    <div className="authBox">
+      <h2>Login</h2>
 
+      <form onSubmit={loginUser}>
         <input
           type="email"
           placeholder="Email"
-          className="border p-2 w-full mb-3"
           onChange={(e) => setEmail(e.target.value)}
         />
 
         <input
           type="password"
           placeholder="Password"
-          className="border p-2 w-full mb-3"
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        <button
-          onClick={login}
-          className="bg-blue-500 text-white w-full p-2 mb-3"
-        >
-          Login
-        </button>
+        <button>Login</button>
+      </form>
 
-        <button
-          onClick={googleLogin}
-          className="bg-red-500 text-white w-full p-2 mb-3"
-        >
-          Login with Google
-        </button>
+      <button onClick={googleLogin}>Login with Google</button>
 
-        <p>
-          Don't have account ?
-          <Link to="/register" className="text-blue-500 ml-2">
-            Register
-          </Link>
-        </p>
-      </div>
+      <p>
+        New User ? <Link to="/register">Register</Link>
+      </p>
     </div>
   );
 }

@@ -1,53 +1,68 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+import { useNavigate, Link } from "react-router-dom";
 
 export default function Register() {
   const navigate = useNavigate();
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const register = async () => {
-    await createUserWithEmailAndPassword(auth, email, password);
+  const handleRegister = async (e) => {
+    e.preventDefault();
 
-    navigate("/");
+    try {
+      const userCred = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
+
+      await setDoc(doc(db, "users", userCred.user.uid), {
+        name: name,
+        email: email,
+        uid: userCred.user.uid,
+      });
+
+      navigate("/");
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="shadow-lg p-8 w-96">
-        <h2 className="text-2xl font-bold mb-5">Register</h2>
+    <div className="authBox">
+      <h2>Register</h2>
+
+      <form onSubmit={handleRegister}>
+        <input
+          type="text"
+          placeholder="Name"
+          onChange={(e) => setName(e.target.value)}
+        />
 
         <input
           type="email"
           placeholder="Email"
-          className="border p-2 w-full mb-3"
           onChange={(e) => setEmail(e.target.value)}
         />
 
         <input
           type="password"
           placeholder="Password"
-          className="border p-2 w-full mb-3"
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        <button
-          onClick={register}
-          className="bg-green-500 text-white w-full p-2 mb-3"
-        >
-          Register
-        </button>
+        <button>Register</button>
 
         <p>
-          Already have account ?
-          <Link to="/login" className="text-blue-500 ml-2">
-            Login
-          </Link>
+          Already account ? <Link to="/login">Login</Link>
         </p>
-      </div>
+      </form>
     </div>
   );
 }
+  

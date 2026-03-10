@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import RootLayout from "./Layout/RootLayout";
@@ -12,17 +12,42 @@ import Cart from "./Components/Cart";
 import Wishlist from "./Components/Wishlist";
 
 import CheckOut from "./pages/CheckOut";
-import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import Orders from "./pages/Orders";
+import Login from "./pages/Login";
+
+import { auth } from "./config/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function Index() {
-  const user = JSON.parse(localStorage.getItem("currentUser"));
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Firebase Auth Check
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Loading Screen
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <h2 className="text-xl font-semibold">Loading...</h2>
+      </div>
+    );
+  }
 
   return (
     <Routes>
-      {/* Login Routes */}
+      {/* Auth Pages */}
 
       <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
 
@@ -65,6 +90,10 @@ export default function Index() {
           element={user ? <Orders /> : <Navigate to="/login" />}
         />
       </Route>
+
+      {/* 404 Page */}
+
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 }

@@ -33,3 +33,67 @@
 .animate-fade-in-out {
   animation: fadeInOut 3.2s ease-in-out forwards;
 }
+
+.auth-container {
+  display: flex;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+  background: #f1f3f6;
+}
+
+.auth-left {
+  background: #2874f0;
+  color: white;
+  width: 350px;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.auth-left img {
+  width: 200px;
+}
+
+.auth-right {
+  background: white;
+  padding: 40px;
+  width: 350px;
+}
+
+.auth-right form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.auth-right input {
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+.auth-right button {
+  background: #fb641b;
+  color: white;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.password-box {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+}
+
+.password-box input {
+  border: none;
+  flex: 1;
+  padding: 10px;
+}
+
+.password-box span {
+  padding: 10px;
+  cursor: pointer;
+}

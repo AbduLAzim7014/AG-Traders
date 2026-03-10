@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaRegUser, FaRegHeart, FaShoppingCart, FaHeart } from "react-icons/fa";
+import { FaRegHeart, FaShoppingCart, FaHeart } from "react-icons/fa";
 import { GoSearch } from "react-icons/go";
 import { RiLoginBoxLine } from "react-icons/ri";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,6 +8,9 @@ import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { products } from "../Components/BlogData/BlogData";
 import { ToastContainer } from "react-toastify";
+
+import { auth } from "../config/firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
 const menuItems = [
   { name: "Home", path: "/" },
@@ -29,28 +32,25 @@ export default function Header() {
   const { totalItems } = useCart();
   const { totalItems: wishlistItems } = useWishlist();
 
-  // CHECK USER LOGIN
+  // 🔹 Firebase User Detect
+
   useEffect(() => {
-    const checkUser = () => {
-      const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-    };
+    });
 
-    checkUser();
-
-    window.addEventListener("storage", checkUser);
-
-    return () => window.removeEventListener("storage", checkUser);
+    return () => unsubscribe();
   }, []);
 
-  // LOGOUT
-  const handleLogout = () => {
-    localStorage.removeItem("currentUser");
-    setUser(null);
+  // 🔹 Logout
+
+  const handleLogout = async () => {
+    await signOut(auth);
     navigate("/login");
   };
 
-  // SEARCH FILTER
+  // 🔹 Search Filter
+
   const filteredProducts = products.filter(
     (product) =>
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -63,7 +63,8 @@ export default function Header() {
     setIsSearchOpen(false);
   };
 
-  // CLOSE DROPDOWN CLICK OUTSIDE
+  // 🔹 Close Dropdown
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -71,7 +72,9 @@ export default function Header() {
         setIsProfileOpen(false);
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
+
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
@@ -130,6 +133,12 @@ export default function Header() {
 
               {isSearchOpen && searchQuery && (
                 <div className="absolute w-full bg-white shadow-lg border mt-2 rounded max-h-64 overflow-y-auto">
+                  {filteredProducts.length === 0 && (
+                    <p className="p-3 text-sm text-gray-500">
+                      No products found
+                    </p>
+                  )}
+
                   {filteredProducts.slice(0, 6).map((product) => (
                     <button
                       key={product.id}
@@ -144,6 +153,7 @@ export default function Header() {
 
                       <div className="text-left">
                         <p className="text-sm font-medium">{product.name}</p>
+
                         <p className="text-xs text-green-600">
                           ₹{product.price}
                         </p>
@@ -195,7 +205,14 @@ export default function Header() {
                 ) : (
                   <>
                     <button onClick={() => setIsProfileOpen(!isProfileOpen)}>
-                      <FaRegUser className="text-xl" />
+                      <img
+                        src={
+                          user.photoURL ||
+                          `https://ui-avatars.com/api/?name=${user.email}&background=ff6a00&color=fff`
+                        }
+                        alt="profile"
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
                     </button>
 
                     <AnimatePresence>
@@ -204,10 +221,18 @@ export default function Header() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0 }}
-                          className="absolute right-0 mt-3 w-44 bg-white shadow-lg border rounded"
+                          className="absolute right-0 mt-3 w-48 bg-white shadow-xl border rounded-lg overflow-hidden"
                         >
-                          <div className="p-3 border-b text-sm font-semibold">
-                            {user?.name || "User"}
+                          <div className="p-3 border-b text-sm font-semibold flex items-center gap-2">
+                            <img
+                              src={
+                                user.photoURL ||
+                                `https://ui-avatars.com/api/?name=${user.email}`
+                              }
+                              className="w-8 h-8 rounded-full"
+                            />
+
+                            {user.displayName || user.email}
                           </div>
 
                           <Link
@@ -224,9 +249,16 @@ export default function Header() {
                             My Orders
                           </Link>
 
+                          <Link
+                            to="/wishlist"
+                            className="block px-4 py-2 hover:bg-gray-100"
+                          >
+                            Wishlist
+                          </Link>
+
                           <button
                             onClick={handleLogout}
-                            className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                            className="block w-full text-left px-4 py-2 hover:bg-red-50 text-red-600"
                           >
                             Logout
                           </button>
@@ -237,7 +269,7 @@ export default function Header() {
                 )}
               </div>
 
-              {/* MOBILE MENU BUTTON */}
+              {/* MOBILE MENU */}
 
               <button
                 className="lg:hidden text-xl"
@@ -282,7 +314,7 @@ export default function Header() {
                       onClick={handleLogout}
                       className="block px-4 py-2 text-red-600"
                     >
-                      Logout  
+                      Logout
                     </button>
                   </>
                 )}
