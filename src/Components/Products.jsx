@@ -1,312 +1,291 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
 import ProductCard from "../pages/ProductCard";
-import { products, CATEGORIES } from "./BlogData/BlogData";
+import { getProducts } from "../services/productService";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaFilter, FaSearch, FaTimes } from "react-icons/fa";
+import { FaFilter, FaSearch, FaTimes, FaBoxOpen } from "react-icons/fa";
+import { products as localProducts } from "./BlogData/BlogData";
 
 export default function Products() {
+  const { category: categoryParam } = useParams();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState("popular");
   const [searchQuery, setSearchQuery] = useState("");
-  const [priceRange, setPriceRange] = useState([0, 150]);
-  const [showFilters, setShowFilters] = useState(true);
+  const [priceRange, setPriceRange] = useState([0, 5000]); // Optimized range
   const [minRating, setMinRating] = useState(0);
+  const [inStockOnly, setInStockOnly] = useState(true);
 
-  // Filter and Sort Logic
+  // Initial Data Fetch
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const fetched = await getProducts();
+        setProducts(fetched && fetched.length > 0 ? fetched : localProducts);
+      } catch (error) {
+        console.error("Fetch error, using local data:", error);
+        setProducts(localProducts);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  // Extract unique categories
+  const categories = useMemo(() => {
+    const unique = Array.from(
+      new Set(products.map((p) => p.category).filter(Boolean)),
+    );
+    return ["All", ...unique];
+  }, [products]);
+
+  // Sync category from URL params
+  useEffect(() => {
+    if (categoryParam) {
+      const decoded = categoryParam.replace(/-/g, " ");
+      const matched = categories.find(
+        (c) => c.toLowerCase() === decoded.toLowerCase(),
+      );
+      setSelectedCategory(matched || "All");
+    } else {
+      setSelectedCategory("All");
+    }
+  }, [categoryParam, categories]);
+
+  // Main Filtering and Sorting Logic
   const filteredProducts = useMemo(() => {
     let filtered = products.filter((product) => {
       const matchesCategory =
         selectedCategory === "All" || product.category === selectedCategory;
       const matchesSearch =
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.material.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchQuery.toLowerCase());
+        product.description?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesPrice =
         product.price >= priceRange[0] && product.price <= priceRange[1];
-      const matchesRating = product.rating >= minRating;
+      const matchesRating = (product.rating || 0) >= minRating;
+      const matchesStock = inStockOnly ? product.stock > 0 : true;
 
-      return matchesCategory && matchesSearch && matchesPrice && matchesRating;
+      return (
+        matchesCategory &&
+        matchesSearch &&
+        matchesPrice &&
+        matchesRating &&
+        matchesStock
+      );
     });
 
-    // Sort
-    switch (sortBy) {
-      case "price-low":
-        return filtered.sort((a, b) => a.price - b.price);
-      case "price-high":
-        return filtered.sort((a, b) => b.price - a.price);
-      case "rating":
-        return filtered.sort((a, b) => b.rating - a.rating);
-      case "newest":
-        return filtered.sort((a, b) => b.id - a.id);
-      case "discount":
-        return filtered.sort(
-          (a, b) =>
-            (b.oldPrice - b.price) / b.oldPrice -
-            (a.oldPrice - a.price) / a.oldPrice,
-        );
-      default: // popular
-        return filtered.sort((a, b) => b.reviews - a.reviews);
-    }
-  }, [selectedCategory, sortBy, searchQuery, priceRange, minRating]);
+    const sortMethods = {
+      "price-low": (a, b) => a.price - b.price,
+      "price-high": (a, b) => b.price - a.price,
+      rating: (a, b) => (b.rating || 0) - (a.rating || 0),
+      popular: (a, b) => (b.reviews || 0) - (a.reviews || 0),
+      newest: (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0),
+    };
 
-  const activeFiltersCount =
-    (selectedCategory !== "All" ? 1 : 0) +
-    (searchQuery ? 1 : 0) +
-    (priceRange[0] > 0 || priceRange[1] < 150 ? 1 : 0) +
-    (minRating > 0 ? 1 : 0);
+    const sorted = [...filtered];
+    return sortMethods[sortBy] ? sorted.sort(sortMethods[sortBy]) : sorted;
+  }, [
+    products,
+    selectedCategory,
+    sortBy,
+    searchQuery,
+    priceRange,
+    minRating,
+    inStockOnly,
+  ]);
 
   const handleResetFilters = () => {
     setSelectedCategory("All");
     setSearchQuery("");
-    setPriceRange([0, 150]);
+    setPriceRange([0, 5000]);
     setMinRating(0);
+    setInStockOnly(true);
     setSortBy("popular");
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-500 font-medium animate-pulse">
+            Loading amazing products...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="min-h-screen bg-linear-to-b from-gray-50 to-gray-100"
+      className="min-h-screen bg-gray-50 pb-20"
     >
       {/* Hero Section */}
-      <div className="bg-linear-to-r from-orange-500 via-orange-600 to-orange-700 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center"
+      <div className="bg-gradient-to-r from-orange-600 to-orange-700 text-white py-12 shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <motion.h1
+            initial={{ y: -20 }}
+            animate={{ y: 0 }}
+            className="text-4xl md:text-5xl font-extrabold mb-3"
           >
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Premium Wooden Products
-            </h1>
-            <p className="text-orange-100 text-lg max-w-2xl mx-auto">
-              Discover our exclusive collection of handcrafted wooden kitchen
-              items - from traditional chaklas and belans to modern matani
-              products
-            </p>
-          </motion.div>
+            Premium Wooden Products
+          </motion.h1>
+          <p className="text-orange-100 text-lg opacity-90">
+            Handcrafted with love, tradition, and 100% natural wood.
+          </p>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Search Bar */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <div className="relative">
-            <FaSearch className="absolute left-4 top-4 text-gray-400 text-lg" />
-            <input
-              type="text"
-              placeholder="Search products by name, material, or description..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition shadow-sm"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-4 top-3 text-gray-400 hover:text-gray-600"
-              >
-                <FaTimes />
-              </button>
-            )}
-          </div>
-        </motion.div>
+        <div className="relative mb-8 max-w-2xl mx-auto">
+          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by name, material or use..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-12 pr-12 py-4 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none shadow-md text-gray-700 transition-all"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-600"
+            >
+              <FaTimes />
+            </button>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* FILTERS SIDEBAR */}
-          <motion.div layout className="lg:sticky lg:top-24 h-fit">
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                  <FaFilter /> Filters
+          {/* Sidebar Filters */}
+          <aside className="lg:col-span-1 space-y-6">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-24">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                  <FaFilter className="text-orange-600 text-sm" /> Filters
                 </h2>
-                {activeFiltersCount > 0 && (
-                  <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                    {activeFiltersCount} Active
-                  </span>
-                )}
+                <button
+                  onClick={handleResetFilters}
+                  className="text-xs font-bold text-orange-600 hover:underline"
+                >
+                  Reset All
+                </button>
               </div>
 
-              {activeFiltersCount > 0 && (
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  onClick={handleResetFilters}
-                  className="w-full mb-4 py-2 text-orange-600 border border-orange-600 rounded-lg hover:bg-orange-50 transition text-sm font-semibold"
-                >
-                  Reset All Filters
-                </motion.button>
-              )}
-
-              {/* Category Filter */}
-              <div className="mb-6 pb-6 border-b">
-                <h3 className="font-semibold text-gray-800 mb-3">Category</h3>
-                <div className="space-y-2">
-                  {CATEGORIES.map((category) => (
-                    <motion.button
-                      key={category}
-                      whileHover={{ x: 4 }}
-                      onClick={() => setSelectedCategory(category)}
-                      className={`w-full text-left px-3 py-2 rounded-lg transition ${
-                        selectedCategory === category
-                          ? "bg-orange-500 text-white font-semibold"
-                          : "hover:bg-gray-100 text-gray-700"
+              {/* Categories */}
+              <div className="mb-8">
+                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">
+                  Categories
+                </h3>
+                <div className="flex flex-col gap-1">
+                  {categories.map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setSelectedCategory(cat)}
+                      className={`text-left px-4 py-2.5 rounded-xl transition-all text-sm font-medium ${
+                        selectedCategory === cat
+                          ? "bg-orange-600 text-white shadow-md shadow-orange-200"
+                          : "text-gray-600 hover:bg-orange-50"
                       }`}
                     >
-                      {category}
-                    </motion.button>
+                      {cat}
+                    </button>
                   ))}
                 </div>
               </div>
 
-              {/* Price Filter */}
-              <div className="mb-6 pb-6 border-b">
-                <h3 className="font-semibold text-gray-800 mb-3">
-                  Price Range
-                </h3>
-                <div className="space-y-2">
-                  <input
-                    type="range"
-                    min="0"
-                    max="150"
-                    value={priceRange[1]}
-                    onChange={(e) =>
-                      setPriceRange([priceRange[0], parseInt(e.target.value)])
-                    }
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-sm text-gray-600">
-                    <span>₹{priceRange[0]}</span>
-                    <span>₹{priceRange[1]}</span>
+              {/* Stock Toggle */}
+              <div className="pt-6 border-t border-gray-100">
+                <label className="flex items-center justify-between cursor-pointer group">
+                  <span className="text-sm font-bold text-gray-700 group-hover:text-orange-600 transition-colors">
+                    In Stock Only
+                  </span>
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      checked={inStockOnly}
+                      onChange={(e) => setInStockOnly(e.target.checked)}
+                      className="sr-only"
+                    />
+                    <div
+                      className={`w-10 h-5 rounded-full transition-colors ${inStockOnly ? "bg-orange-500" : "bg-gray-300"}`}
+                    ></div>
+                    <div
+                      className={`absolute top-1 left-1 bg-white w-3 h-3 rounded-full transition-transform ${inStockOnly ? "translate-x-5" : "translate-x-0"}`}
+                    ></div>
                   </div>
-                </div>
-              </div>
-
-              {/* Rating Filter */}
-              <div className="mb-6 pb-6 border-b">
-                <h3 className="font-semibold text-gray-800 mb-3">
-                  Minimum Rating
-                </h3>
-                <div className="space-y-2">
-                  {[0, 3.5, 4, 4.5, 4.8].map((rating) => (
-                    <label
-                      key={rating}
-                      className="flex items-center gap-2 cursor-pointer hover:text-orange-600 transition"
-                    >
-                      <input
-                        type="radio"
-                        name="rating"
-                        value={rating}
-                        checked={minRating === rating}
-                        onChange={(e) =>
-                          setMinRating(parseFloat(e.target.value))
-                        }
-                        className="w-4 h-4"
-                      />
-                      <span className="text-sm text-gray-700">
-                        {rating === 0 ? "All Ratings" : `${rating}⭐ & up`}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Stock Filter */}
-              <div className="pb-6 border-b">
-                <h3 className="font-semibold text-gray-800 mb-3">
-                  Availability
-                </h3>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="w-4 h-4" defaultChecked />
-                  <span className="text-sm text-gray-700">In Stock Only</span>
                 </label>
               </div>
             </div>
-          </motion.div>
+          </aside>
 
-          {/* PRODUCTS GRID */}
-          <div className="lg:col-span-3">
-            {/* Sorting and Results */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col sm:flex-row items-center justify-between mb-6 bg-white p-4 rounded-lg shadow-md"
-            >
-              <p className="text-gray-600 font-semibold">
+          {/* Product Listing Grid */}
+          <main className="lg:col-span-3">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-white p-4 rounded-2xl shadow-sm">
+              <p className="text-gray-500 font-medium">
                 Showing{" "}
-                <span className="text-orange-600">
+                <span className="text-gray-900 font-bold">
                   {filteredProducts.length}
                 </span>{" "}
-                products
+                high-quality items
               </p>
-
-              <div className="flex items-center gap-2 mt-4 sm:mt-0">
-                <label className="text-gray-700 font-semibold">Sort by:</label>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-400 font-bold uppercase">
+                  Sort:
+                </span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 bg-white"
+                  className="bg-gray-50 border-none text-sm font-bold text-gray-700 py-2 pl-4 pr-8 rounded-xl focus:ring-2 focus:ring-orange-500 cursor-pointer"
                 >
-                  <option value="popular">Most Popular</option>
-                  <option value="newest">Newest Arrivals</option>
+                  <option value="popular">Popularity</option>
+                  <option value="newest">Newest</option>
                   <option value="price-low">Price: Low to High</option>
                   <option value="price-high">Price: High to Low</option>
-                  <option value="rating">Highest Rated</option>
-                  <option value="discount">Best Discount</option>
+                  <option value="rating">Top Rated</option>
                 </select>
               </div>
-            </motion.div>
+            </div>
 
-            {/* Products Grid */}
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="popLayout">
               {filteredProducts.length > 0 ? (
                 <motion.div
-                  key="products"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="grid grid-cols-1 sm:grid-cols-2 gap-6"
+                  layout
+                  className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-8"
                 >
-                  {filteredProducts.map((product, index) => (
-                    <motion.div
-                      key={product.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <ProductCard product={product} />
-                    </motion.div>
+                  {filteredProducts.map((product) => (
+                    <ProductCard key={product.id} product={product} />
                   ))}
                 </motion.div>
               ) : (
                 <motion.div
-                  key="empty"
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="col-span-full text-center py-12"
+                  className="text-center py-24 bg-white rounded-3xl shadow-sm"
                 >
-                  <div className="text-6xl mb-4">🔍</div>
-                  <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                    No Products Found
+                  <FaBoxOpen className="mx-auto text-6xl text-gray-200 mb-4" />
+                  <h3 className="text-xl font-bold text-gray-800">
+                    No matches found
                   </h3>
-                  <p className="text-gray-600 mb-6">
-                    Try adjusting your filters or search query
+                  <p className="text-gray-500 mt-2">
+                    Try adjusting your filters or search terms.
                   </p>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
+                  <button
                     onClick={handleResetFilters}
-                    className="bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition font-semibold"
+                    className="mt-6 text-orange-600 font-bold hover:underline"
                   >
-                    Clear All Filters
-                  </motion.button>
+                    Clear all filters
+                  </button>
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
+          </main>
         </div>
       </div>
     </motion.div>

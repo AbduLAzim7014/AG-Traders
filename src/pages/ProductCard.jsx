@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { FaHeart, FaRegHeart } from "react-icons/fa";
-import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { FaHeart, FaRegHeart, FaStar } from "react-icons/fa";
+import { useState, useMemo } from "react";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 
@@ -10,164 +10,164 @@ export default function ProductCard({ product }) {
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const [showNotification, setShowNotification] = useState(false);
 
+  const fallbackImage =
+    "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?q=80&w=400&h=300&auto=format&fit=crop";
+
+  // Calculations Memoized
+  const { discountPercent, savings } = useMemo(() => {
+    const discount =
+      product.oldPrice && product.oldPrice > product.price
+        ? Math.round(
+            ((product.oldPrice - product.price) / product.oldPrice) * 100,
+          )
+        : 0;
+    const saveAmt = (product.oldPrice || product.price) - product.price;
+    return { discountPercent: discount, savings: saveAmt };
+  }, [product.price, product.oldPrice]);
+
+  // Wishlist logic with stopPropagation
   const handleWishlist = (e) => {
     e.preventDefault();
-    if (isInWishlist(product.id)) {
-      removeFromWishlist(product.id);
-    } else {
-      addToWishlist(product);
-    }
+    e.stopPropagation(); // Card ke product page link ko trigger hone se rokta hai
+    isInWishlist(product.id)
+      ? removeFromWishlist(product.id)
+      : addToWishlist(product);
   };
 
+  // Add to Cart logic with stopPropagation
   const handleQuickAdd = (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    if (product.stock === 0) return;
+
     addToCart(product, 1);
     setShowNotification(true);
     setTimeout(() => setShowNotification(false), 2000);
   };
 
-  const discountPercent = Math.round(
-    ((product.oldPrice - product.price) / product.oldPrice) * 100,
-  );
-  const savings = product.oldPrice - product.price;
-
   return (
     <motion.div
       whileHover={{ y: -8 }}
-      transition={{ type: "spring", stiffness: 300 }}
-      className="h-full"
+      className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden group flex flex-col h-full relative"
     >
-      <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group h-full flex flex-col">
-        {/* Image Container */}
-        <div className="relative w-full h-52 bg-gray-100 overflow-hidden">
-          <img
-            src={product.image}
-            alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-          />
-
-          {/* Discount Badge */}
-          {discountPercent > 0 && (
-            <motion.div
-              initial={{ rotate: -45, scale: 0 }}
-              animate={{ rotate: 0, scale: 1 }}
-              className="absolute -top-3 -right-10 bg-linear-to-r from-red-500 to-orange-500 text-white px-8 py-1 text-xs font-bold transform rotate-45 shadow-lg"
-            >
-              {discountPercent}% OFF
-            </motion.div>
-          )}
-
-          {/* Stock Badge */}
-          <div className="absolute top-3 left-3">
-            {product.stock > 20 ? (
-              <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
-                In Stock
-              </span>
-            ) : product.stock > 0 ? (
-              <span className="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
-                Limited Stock
-              </span>
-            ) : (
-              <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
-                Out of Stock
-              </span>
-            )}
-          </div>
-
-          {/* Wishlist Button */}
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={handleWishlist}
-            className="absolute top-3 right-3 bg-white p-2 rounded-full shadow-md hover:shadow-lg transition"
-          >
-            {isInWishlist(product.id) ? (
-              <FaHeart className="text-red-500" />
-            ) : (
-              <FaRegHeart className="text-gray-600" />
-            )}
-          </motion.button>
-
-          {/* Quick Add Button - Completed the truncated part */}
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={handleQuickAdd}
-            className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black text-white py-2 px-4 rounded-full hover:bg-gray-800 transition"
-          >
-            Quick Add
-          </motion.button>
-        </div>
-
-        {/* Notification */}
+      {/* Success Notification */}
+      <AnimatePresence>
         {showNotification && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, y: -40 }}
+            animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="fixed top-20 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50"
+            className="absolute inset-x-0 top-0 bg-green-600 text-white text-center py-2 text-[10px] font-bold z-50 shadow-md"
           >
-            ✓ Added to cart!
+            ✓ Added to Cart
           </motion.div>
         )}
+      </AnimatePresence>
 
-        {/* Content */}
-        <div className="p-4 flex-1 flex flex-col justify-between">
-          {/* Product Info */}
-          <div>
-            <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">
-              {product.category}
-            </div>
+      {/* Image Area with Overlay Link */}
+      <div className="relative h-56 overflow-hidden bg-gray-50">
+        <Link to={`/product/${product.slug}`} className="block h-full w-full">
+          <img
+            src={product.image || fallbackImage}
+            alt={product.name}
+            className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500 p-2"
+            loading="lazy"
+          />
+        </Link>
 
-            <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 mb-2 group-hover:text-orange-600 transition">
-              {product.name}
-            </h3>
+        {/* Badges */}
+        <div className="absolute top-3 left-3 pointer-events-none">
+          {discountPercent > 0 && (
+            <span className="bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded shadow-sm">
+              {discountPercent}% OFF
+            </span>
+          )}
+        </div>
 
-            <p className="text-xs text-gray-600 mb-2">{product.material}</p>
+        <div className="absolute top-3 right-3 pointer-events-none">
+          <span
+            className={`text-[9px] font-bold px-2 py-1 rounded uppercase text-white shadow-sm ${
+              product.stock > 5
+                ? "bg-green-500"
+                : product.stock > 0
+                  ? "bg-orange-500"
+                  : "bg-gray-400"
+            }`}
+          >
+            {product.stock > 5
+              ? "In Stock"
+              : product.stock > 0
+                ? "Low Stock"
+                : "Sold Out"}
+          </span>
+        </div>
 
-            {/* Rating */}
-            <div className="flex items-center gap-2 mb-3">
-              <div className="flex text-yellow-400">
-                {[...Array(5)].map((_, i) => (
-                  <span
-                    key={i}
-                    className={
-                      i < Math.floor(product.rating) ? "" : "opacity-30"
-                    }
-                  >
-                    ⭐
-                  </span>
-                ))}
-              </div>
-              <span className="text-xs text-gray-500">({product.reviews})</span>
+        {/* Wishlist Button - Overlaying the Link */}
+        <button
+          onClick={handleWishlist}
+          className="absolute bottom-3 left-3 w-9 h-9 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow hover:bg-white transition-all z-20 active:scale-90"
+        >
+          {isInWishlist(product.id) ? (
+            <FaHeart className="text-red-500" />
+          ) : (
+            <FaRegHeart className="text-gray-400" />
+          )}
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="p-4 flex flex-col flex-1">
+        <div className="flex-1">
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-[10px] font-bold text-orange-600 uppercase tracking-widest">
+              {product.category || "Wooden"}
+            </span>
+            <div className="flex items-center gap-1">
+              <FaStar className="text-yellow-400 text-[10px]" />
+              <span className="text-xs font-bold text-gray-600">
+                {product.rating || "5.0"}
+              </span>
             </div>
           </div>
 
-          {/* Price Section */}
-          <div className="mb-3">
-            <div className="flex items-baseline gap-2 mb-1">
-              <span className="text-lg font-bold text-green-600">
-                ₹{product.price}
-              </span>
-              <span className="text-sm text-gray-400 line-through">
+          <Link to={`/product/${product.slug}`}>
+            <h3 className="text-gray-800 font-bold text-sm leading-tight mb-1 hover:text-orange-600 transition-colors line-clamp-2">
+              {product.name}
+            </h3>
+          </Link>
+          <p className="text-[11px] text-gray-500 mb-2">
+            {product.material || "Handcrafted Wood"}
+          </p>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-2 pt-2 border-t border-gray-50">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg font-black text-gray-900">
+              ₹{product.price}
+            </span>
+            {product.oldPrice && (
+              <span className="text-xs text-gray-400 line-through">
                 ₹{product.oldPrice}
               </span>
-              <span className="text-xs text-red-500 font-semibold">
-                Save ₹{savings}
-              </span>
-            </div>
-            {product.shippingTime && (
-              <p className="text-xs text-blue-600">
-                📦 Ships in {product.shippingTime}
-              </p>
             )}
           </div>
 
-          {/* View Details Button */}
-          <Link
-            to={`/product/${product.slug}`}
-            className="block w-full text-center bg-linear-to-r from-blue-600 to-blue-700 text-white py-2 rounded-lg hover:shadow-lg transition font-semibold text-sm"
-          >
-            View Details
-          </Link>
+          <div className="grid grid-cols-2 gap-2">
+            <Link
+              to={`/product/${product.slug}`}
+              className="text-center bg-white border border-gray-200 text-gray-800 py-2 rounded-lg text-[11px] font-bold hover:bg-gray-50 transition-all"
+            >
+              Details
+            </Link>
+            <button
+              onClick={handleQuickAdd}
+              disabled={product.stock === 0}
+              className="bg-gray-900 text-white py-2 rounded-lg text-[11px] font-bold hover:bg-orange-600 disabled:bg-gray-100 disabled:text-gray-400 transition-all"
+            >
+              {product.stock === 0 ? "Out" : "Add"}
+            </button>
+          </div>
         </div>
       </div>
     </motion.div>

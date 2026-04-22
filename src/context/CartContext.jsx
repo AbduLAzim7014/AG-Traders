@@ -15,17 +15,19 @@ export const CartProvider = ({ children }) => {
   }, [cart]);
 
   // ➕ Add To Cart
-  const addToCart = (product) => {
-    const exist = cart.find((item) => item._id === product._id);
+  const addToCart = (product, quantity = 1) => {
+    const productId = product._id || product.id;
+    const qtyToAdd = quantity || 1;
+    const exist = cart.find((item) => item._id === productId);
 
     if (exist) {
       setCart(
         cart.map((item) =>
-          item._id === product._id ? { ...item, qty: item.qty + 1 } : item,
+          item._id === productId ? { ...item, qty: item.qty + qtyToAdd } : item,
         ),
       );
     } else {
-      setCart([...cart, { ...product, qty: 1 }]);
+      setCart([...cart, { ...product, _id: productId, qty: qtyToAdd }]);
     }
   };
 
